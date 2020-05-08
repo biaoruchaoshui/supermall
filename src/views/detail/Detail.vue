@@ -1,15 +1,15 @@
 <!-- 商品详情页视图 -->
 <template>
   <div id="detail" name = "detail">
-    <detail-nav-bar class="detail-nav"/>
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar class="detail-nav" @titleClick = "titleClick"/>
+    <scroll class="content" ref="scroll" :probe-type = "3" @scroll = "contentScroll">
          <detail-swiper :top-images = "topImages" />
         <detail-base-info :goods = "goods"/>
         <detail-shop-info :shop = "shop"/>
         <detail-goods-info :detail-info = "detailInfo" @imageLoad = "imageLoad"/>
-        <detail-param-info :param-info = "paramInfo"/>
-        <detail-common-info :comment-info = "commentInfo"/>
-        <goods-list :goods = "recommends"/>
+        <detail-param-info ref="param" :param-info = "paramInfo"/>
+        <detail-comment-info ref="comment" :comment-info = "commentInfo"/>
+        <goods-list ref="recommend" :goods = "recommends"/>
     </scroll>
   </div>
 </template>
@@ -21,14 +21,17 @@
     import DetailShopInfo from './childComps/DetailShopInfo'
     import DetailGoodsInfo from './childComps/DetailGoodsInfo'
     import DetailParamInfo from './childComps/DetailParamInfo'
-    import DetailCommonInfo from './childComps/DetailCommentInfo'
+    import DetailCommentInfo from './childComps/DetailCommentInfo'
 
     import {getDetail,getRecommend, Goods, Shop, GoodsParam} from 'network/detail'
     import Scroll from 'components/common/scroll/Scroll'
     import GoodsList from 'components/content/goods/GoodsList'
+    import {itemListenerMixin} from 'common/mixin';
+    import {debounce} from "common/utils";
 
     export default {
     name: "Detail",
+    mixins: [itemListenerMixin],
     data () {
         return {
             iid: null,
@@ -39,6 +42,8 @@
             paramInfo: {},
             commentInfo: {},
             recommends: [],
+            themeTopYs: [],
+            getThemeTopY: null,
         }
     },
 
@@ -49,7 +54,7 @@
         DetailShopInfo,
         DetailGoodsInfo,
         DetailParamInfo,
-        DetailCommonInfo,
+        DetailCommentInfo,
         GoodsList,
         Scroll,
     },
@@ -81,12 +86,33 @@
         getRecommend().then(res => {
             this.recommends = res.data.list
         })
-    },
-    mounted() {},
+        // 4.给getThemeTopY赋值
+        this.getThemeTopY = debounce(() => {
+            this.themeTopYs = [];
+            this.themeTopYs.push(0);
+            this.themeTopYs.push(this.$refs.param.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+            this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+            console.log(this.themeTopYs);
+        },100)
 
+    },
+    mounted() {
+
+    },
+    destoryed() {
+        this.$bus.$off('itemImageLoad', this.itemImageListener)
+    },
     methods: {
         imageLoad() {
             this.$refs.scroll.refresh()
+            this.getThemeTopY()
+        },
+        titleClick(index) {
+            this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 100)
+        },
+        contentScroll(position) {
+            console.log(position);
         }
     },
 }

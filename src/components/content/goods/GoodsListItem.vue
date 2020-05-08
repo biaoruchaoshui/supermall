@@ -27,8 +27,13 @@
     },
     methods: {
       imageLoad() {
-        // 发送事件总线，到 Home中监听
         this.$bus.$emit('itemImageLoad')
+        // 方法1：发送事件总线，到 Home中监听
+        // if(this.$route.path.indexOf('/home')) {
+        //    this.$bus.$emit('homeItemImageLoad')
+        // } else if(this.$route.path.indexOf('/detail')){
+        //   this.$bus.$emit('detailItemImageLoad')
+        // }
       },
       itemClick() {
         this.$router.push('/detail/' + this.goodsItem.iid)
