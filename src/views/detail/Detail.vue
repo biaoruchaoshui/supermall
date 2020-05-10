@@ -1,9 +1,9 @@
 <!-- 商品详情页视图 -->
 <template>
   <div id="detail" name = "detail">
-    <detail-nav-bar class="detail-nav" @titleClick = "titleClick"/>
+    <detail-nav-bar class="detail-nav" @titleClick = "titleClick" ref="nav" />
     <scroll class="content" ref="scroll" :probe-type = "3" @scroll = "contentScroll">
-         <detail-swiper :top-images = "topImages" />
+        <detail-swiper :top-images = "topImages" />
         <detail-base-info :goods = "goods"/>
         <detail-shop-info :shop = "shop"/>
         <detail-goods-info :detail-info = "detailInfo" @imageLoad = "imageLoad"/>
@@ -22,6 +22,7 @@
     import DetailGoodsInfo from './childComps/DetailGoodsInfo'
     import DetailParamInfo from './childComps/DetailParamInfo'
     import DetailCommentInfo from './childComps/DetailCommentInfo'
+    import DetailBottomBar from './childComps/DetailBottomBar'
 
     import {getDetail,getRecommend, Goods, Shop, GoodsParam} from 'network/detail'
     import Scroll from 'components/common/scroll/Scroll'
@@ -44,6 +45,7 @@
             recommends: [],
             themeTopYs: [],
             getThemeTopY: null,
+            currentIndex: 0,
         }
     },
 
@@ -55,6 +57,7 @@
         DetailGoodsInfo,
         DetailParamInfo,
         DetailCommentInfo,
+        DetailBottomBar,
         GoodsList,
         Scroll,
     },
@@ -93,6 +96,7 @@
             this.themeTopYs.push(this.$refs.param.$el.offsetTop);
             this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
             this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+            this.themeTopYs.push(Number.MAX_VALUE)
             console.log(this.themeTopYs);
         },100)
 
@@ -112,7 +116,16 @@
             this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 100)
         },
         contentScroll(position) {
-            console.log(position);
+            // 1.获取y值
+            const positionY = -position.y;
+            let length = this.themeTopYs.length;
+            for(let i = 0; i < length -1; i++){
+                if(this.currentIndex != i &&  positionY >= this.themeTopYs[i] && 
+                positionY < this.themeTopYs[i + 1]){
+                    this.currentIndex = i;
+                    this.$refs.nav.currentIndex = this.currentIndex;
+                }
+            }
         }
     },
 }
