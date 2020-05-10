@@ -11,6 +11,8 @@
         <detail-comment-info ref="comment" :comment-info = "commentInfo"/>
         <goods-list ref="recommend" :goods = "recommends"/>
     </scroll>
+     <back-top @click.native="backClick" v-show="isShowBackTop"/>
+    <detail-bottom-bar/>
   </div>
 </template>
 
@@ -27,12 +29,12 @@
     import {getDetail,getRecommend, Goods, Shop, GoodsParam} from 'network/detail'
     import Scroll from 'components/common/scroll/Scroll'
     import GoodsList from 'components/content/goods/GoodsList'
-    import {itemListenerMixin} from 'common/mixin';
+    import {itemListenerMixin, backTopMixin} from 'common/mixin';
     import {debounce} from "common/utils";
 
     export default {
     name: "Detail",
-    mixins: [itemListenerMixin],
+    mixins: [itemListenerMixin, backTopMixin],
     data () {
         return {
             iid: null,
@@ -97,7 +99,6 @@
             this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
             this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
             this.themeTopYs.push(Number.MAX_VALUE)
-            console.log(this.themeTopYs);
         },100)
 
     },
@@ -126,6 +127,8 @@
                     this.$refs.nav.currentIndex = this.currentIndex;
                 }
             }
+            // 3.是否显示回到顶部
+            this.listenShoBackTop(position)
         }
     },
 }
